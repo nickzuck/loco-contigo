@@ -1,17 +1,23 @@
 from rest_framework import serializers
-from .models import TransactionModel
+from .models import TransactionModel, TransactionParentRelationship
 
 class TransactionSerializer(serializers.ModelSerializer):
-    # id = serializers.IntegerField(read_only=True)  # using IntegerField here since it supports integers till 100 digits
-    # type = serializers.CharField(required = True, allow_blank=False)
-    # parent_id = serializers.IntegerField(required=False)
-    #
-    # def create(self, data):
-    #     return TransactionModel.objects.create(**data)
+    parent_id = serializers.IntegerField(required=False)
+
+    def create(self, validated_data):
+        if "parent_id" in validated_data:
+            parent_id = validated_data.pop('parent_id')
+
+        instance = TransactionModel(**validated_data)
+        instance.save()
+        if parent_id is not None:
+            parent_obj = TransactionModel.objects.get(id = parent_id)
+            TransactionParentRelationship.objects.create(parent = parent_obj, transaction = instance)
+        return instance
 
     class Meta:
         model = TransactionModel
-        fields = ["id", "type", "parent_id", "amount"]
+        fields = ["id", "type", "amount", "parent_id"]
 
 class TransactionTypeSerializer(serializers.ModelSerializer):
     class Meta:
