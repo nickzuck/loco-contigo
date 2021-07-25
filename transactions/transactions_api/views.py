@@ -6,6 +6,18 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
 
+# class TransactionCreateView(generics.CreateAPIView):
+#     serializer_class = TransactionSerializer
+#
+# class TransactionUpdateView(generics.UpdateAPIView):
+#     serializer_class = TransactionSerializer
+#     def get_object(self):
+#         return TransactionModel.objects.get(id = self.kwargs.get("txn_id"))
+#
+# class TransactionListView(generics.ListAPIView):
+#     serializer_class = TransactionSerializer
+#     queryset = TransactionModel.objects.all()
+
 @api_view(['GET', 'PUT'])
 def transaction_detail(request, txn_id):
     """
