@@ -11,6 +11,9 @@ from rest_framework import status
 
 @api_view(['POST'])
 def transaction_create(request):
+    """
+    View to create a single transaction object
+    """
     serializer = TransactionSerializer(data = request.data)
     if serializer.is_valid():
         serializer.save()
@@ -20,7 +23,7 @@ def transaction_create(request):
 @api_view(['GET', 'PUT'])
 def transaction_detail(request, txn_id):
     """
-    Views which operate on a single transaction object, specified by id
+    Views to get and update a single transaction object
     """
     try:
         txn = TransactionModel.objects.get(id = txn_id)
@@ -33,13 +36,14 @@ def transaction_detail(request, txn_id):
         return Response(serializer.data)
 
     if request.method == "PUT":
-        data = JSONParser().parse(request)
-        data["id"] = txn_id
-        serializer = TransactionSerializer(txn, data=data)
-        if serializer.is_valid() and serializer.validated_data["id"] == txn.id:
-            serializer.save()
-            return Response(serializer.data, status = status.HTTP_201_CREATED)
-        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+        return Response({"msg" : "NotImplemented"}, status = status.HTTP_501_NOT_IMPLEMENTED)
+        # data = JSONParser().parse(request)
+        # data["id"] = txn_id
+        # serializer = TransactionSerializer(txn, data=data)
+        # if serializer.is_valid() and serializer.validated_data["id"] == txn.id:
+        #     serializer.save()
+        #     return Response(serializer.data, status = status.HTTP_201_CREATED)
+        # return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
 @api_view(["GET"])
 def transaction_type(request, type):
