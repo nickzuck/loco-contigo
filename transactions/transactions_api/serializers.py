@@ -5,6 +5,7 @@ class TransactionSerializer(serializers.ModelSerializer):
     parent_id = serializers.IntegerField(required=False)
 
     def create(self, validated_data):
+        parent_id = None
         if "parent_id" in validated_data:
             parent_id = validated_data.pop('parent_id')
 
@@ -13,6 +14,8 @@ class TransactionSerializer(serializers.ModelSerializer):
         if parent_id is not None:
             parent_obj = TransactionModel.objects.get(id = parent_id)
             TransactionParentRelationship.objects.create(parent = parent_obj, transaction = instance)
+            for grandparent in parent_obj.parents.all():
+                TransactionParentRelationship.objects.create(parent = grandparent, transaction = instance, derived = True)
         return instance
 
     class Meta:

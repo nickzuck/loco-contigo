@@ -2,6 +2,8 @@ from .serializers import TransactionSerializer, TransactionTypeSerializer
 from .models import TransactionModel, TransactionParentRelationship
 from rest_framework import generics
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
+from django.db.models import Sum, Count
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
@@ -9,14 +11,8 @@ from rest_framework import status
 
 @api_view(['POST'])
 def transaction_create(request):
-    # parent_id = request.data.pop('parent_id', None)
-    # parents = [parent_id]
-    # if parent_id is not None:
-    #     # Fetch all the grandparents of the parent
-    #     grandparents = TransactionParentRelationship.objects.filter(transaction= parent_id)
     serializer = TransactionSerializer(data = request.data)
     if serializer.is_valid():
-        # serializer.data["parents"] = parents
         serializer.save()
         return Response(serializer.data, status = status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -33,6 +29,7 @@ def transaction_detail(request, txn_id):
 
     if request.method == "GET":
         serializer = TransactionSerializer(txn)
+        # serializer.parent_id = txn.parents()
         return Response(serializer.data)
 
     if request.method == "PUT":
@@ -42,8 +39,6 @@ def transaction_detail(request, txn_id):
         if serializer.is_valid() and serializer.validated_data["id"] == txn.id:
             serializer.save()
             return Response(serializer.data, status = status.HTTP_201_CREATED)
-        # if serializer.is_valid():
-        #     return Response({"msg" : "Header and Object Id Mismatch"}, status = 400)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
 @api_view(["GET"])
@@ -60,4 +55,5 @@ def transaction_sum(request, txn_id):
     """
     Views for returning the sum by transaction id
     """
-    pass
+    sum = TransactionModel.objects.filter(Q(parents__id = txn_id) | Q(id=txn_id)).annotate(Count("id")).aggregate(Sum("amount"))
+    return Response({"sum" : sum['amount__sum']})
